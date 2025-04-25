@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monitor de Corriente ESP32</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f5f7fa;
+      padding: 20px;
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #3498db;
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin: 5px;
+      cursor: pointer;
+      border: 2px solid #3498db;
+      color: #3498db;
+      background: transparent;
+      font-weight: bold;
+    }
+    .btn-active {
+      background-color: #3498db;
+      color: white;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .value {
+      font-size: 2.5rem;
+      text-align: center;
+    }
+    .unit {
+      font-size: 1rem;
+      color: #7f8c8d;
+    }
+    .stats {
+      font-size: 1.1rem;
+      margin-top: 10px;
+    }
+    .stats div {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Monitor de Corriente ESP32</h1>
+
+    <div class="card">
+      <div style="text-align:center;">
+        <button class="btn btn-active">Auto</button>
+        <button class="btn">mA</button>
+        <button class="btn">µA</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Corriente Actual</h2>
+      <div class="value" id="currentValue">-- <span class="unit">µA</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Estadísticas</h2>
+      <div class="stats">
+        <div><span>Mínimo:</span><span id="minValue">-- µA</span></div>
+        <div><span>Máximo:</span><span id="maxValue">-- µA</span></div>
+        <div><span>Promedio:</span><span id="avgValue">-- µA</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const currentValueEl = document.getElementById('currentValue');
+    const minValueEl = document.getElementById('minValue');
+    const maxValueEl = document.getElementById('maxValue');
+    const avgValueEl = document.getElementById('avgValue');
+
+    const buttons = document.querySelectorAll('.btn');
+    let unitMode = 'auto'; // auto | ua | ma
+    let values = [];
+
+    // Manejar clicks en botones
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('btn-active'));
+        btn.classList.add('btn-active');
+
+        const text = btn.textContent.toLowerCase();
+        unitMode = text === 'auto' ? 'auto' : (text === 'ma' ? 'ma' : 'ua');
+        updateDisplay(); // actualizar visualmente al cambiar modo
+        });
+    });
+
+    function getRandomCurrent() {
+        return (Math.random() * 200 + 50).toFixed(2); // entre 50 y 250 µA
+    }
+
+    function formatValue(value) {
+        if (unitMode === 'ua') return `${value.toFixed(2)} µA`;
+        if (unitMode === 'ma') return `${(value / 1000).toFixed(3)} mA`;
+        // Auto
+        if (value < 1000) return `${value.toFixed(2)} µA`;
+        return `${(value / 1000).toFixed(3)} mA`;
+    }
+
+    function updateDisplay() {
+        const current = parseFloat(getRandomCurrent());
+        values.push(current);
+
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+
+        currentValueEl.innerHTML = formatValue(current);
+        minValueEl.textContent = formatValue(min);
+        maxValueEl.textContent = formatValue(max);
+        avgValueEl.textContent = formatValue(avg);
+    }
+
+    setInterval(updateDisplay, 1000);
+  </script>
+</body>
+</html>
